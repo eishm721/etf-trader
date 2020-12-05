@@ -1,0 +1,1 @@
+Trading bot for GK strategy on ETFs
