@@ -2,6 +2,7 @@ import collections
 
 SHARES_PER_CONTRACT = 100
 
+CASH = 82000
 ETFS = {
     'SPY': {
         'strikePrice': 363,
@@ -21,7 +22,7 @@ ETFS = {
     }
 }
 
-CASH = 82000
+
 
 def extractStockData(stocks):
     pass
