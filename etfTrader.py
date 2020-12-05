@@ -1,3 +1,5 @@
+# backtracking algorithm
+
 import collections
 
 SHARES_PER_CONTRACT = 100
