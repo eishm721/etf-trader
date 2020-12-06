@@ -11,7 +11,7 @@ class Martingale:
         self.key = ## key
         self.secret = ## secret
         self.alpaca_endpoint = 'https://paper-api.alpaca.markets'
-        self.api = tradeapi.RESTT(self.key, self.secret, self.alpaca_endpoint)
+        self.api = tradeapi.REST(self.key, self.secret, self.alpaca_endpoint)
         self.symbol = etf
         self.current_order = None   # keeps track of open orders
         self.last_price = 1
