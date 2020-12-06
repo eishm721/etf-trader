@@ -1,15 +1,18 @@
-
-
-# alpaca API
-# Martingale strategy for S&P ETFs (IVV, SPY,
+# Use alpaca API
+# Martingale strategy for S&P 500 ETFs (IVV, SPY)
 # follow one direction until we get profit
 
 import alpaca_trade_api as tradeapi
 
 class Martingale:
-    def __init__(self, etf):
-        self.key = ## key
-        self.secret = ## secret
+    """
+    double your trade size on losing trades
+    Pros: Recoup the losses & generate profits improving the net earnings
+    Cons: Increasing the investment size without stop loss limits.
+    """
+    def __init__(self, etf='SPY'):
+        self.key =  ## key
+        self.secret =  ## secret
         self.alpaca_endpoint = 'https://paper-api.alpaca.markets'
         self.api = tradeapi.REST(self.key, self.secret, self.alpaca_endpoint)
         self.symbol = etf
@@ -22,15 +25,15 @@ class Martingale:
         except:
             self.position = 0
 
-    def submit_order(self, target):
+    def submit_order(self, numShares):
         if self.current_order is not None:
             self.api.cancel_order(self.current_order.id)
 
-        delta = target - self.position
+        delta = numShares - self.position
         if delta == 0:
             return
 
-        print("Processing the order for {} shares".format(target)...)
+        print("Processing the order for {} shares".format(numShares)...)
 
         if delta > 0:
             buy_quantity = delta
@@ -47,5 +50,5 @@ class Martingale:
 
 
 if __name__ == '__main__':
-    t = Martingale('SPY')
+    t = Martingale()
     t.submit_order(3)
