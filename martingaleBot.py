@@ -55,37 +55,6 @@ class Martingale(TradingBot):
             print("Selling {} shares...".format(sell_quantity))
             self.current_order = self.api.submit_order(self.symbol, sell_quantity, 'sell', 'limit', 'day', self.last_price)
 
-class AntiMartingale(TradingBot):
-    """
-    Double investment size on winning trades–opposite of Martingale
-    Exploit winning momentum
-
-    Pros: Recoup the losses & generate profits improving the net earnings
-    Cons: Increasing the investment size without stop loss limits.
-    """
-    def submit_order(self, targetShares):
-        if self.current_order is not None:
-            self.api.cancel_order(self.current_order.id)
-
-        delta = targetShares - self.position
-        if delta == 0:
-            return
-
-        print("Processing the order for {} shares...".format(targetShares))
-
-        if delta > 0:
-            buy_quantity = delta
-            if self.position < 0:
-                buy_quantity = min(abs(self.position), buy_quantity)
-            print("Buying {} shares...".format(buy_quantity))
-            self.current_order = self.api.submit_order(self.symbol, buy_quantity, 'buy', 'limit', 'day', self.last_price)
-        else:
-            sell_quantity = abs(delta)
-            if self.position > 0:
-                sell_quantity = min(abs(self.position), sell_quantity)
-            print("Selling {} shares...".format(sell_quantity))
-            self.current_order = self.api.submit_order(self.symbol, sell_quantity, 'sell', 'limit', 'day', self.last_price)
-
 
 if __name__ == '__main__':
     t = Martingale()
