@@ -40,7 +40,7 @@ class StockExtractor:
         a given expiration date
         """
         etfs = {}
-        expirationDate = self.__getNextFriday
+        expirationDate = self.__getNextFriday()
         for stock in stocks:
             strikePrice = self.__getStrikePrice(stock)
             premium = self.scraper.getPutPrice(stock, expirationDate, strikePrice)
