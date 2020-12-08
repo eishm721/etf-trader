@@ -102,7 +102,7 @@ class ETFCalculator:
 
 
 def tests():
-    cash = 24101
+    cash = 401088
     etfs = ('SPY', 'DIA', 'QQQ', 'IWM')
     calc = ETFCalculator(cash, etfs)
     print()
