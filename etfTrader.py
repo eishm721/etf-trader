@@ -1,8 +1,8 @@
 """
 FILENAME: etfTrader
 
-Implements modified backtracking algorithm to find optimium
-portfolio distribution for trading ETF option contracts
+Implements modified knapsack search algorithm to find optimium
+portfolio distribution (in polynomial time) for trading ETF option contracts
 using modified straddle-based strategy
 """
 
@@ -12,30 +12,103 @@ import scrapePrices as sp
 SHARES_PER_CONTRACT = 100
 
 
+CASH = 400000
+ETFS = {
+    'SPY': {
+        1191: {
+            'strikePrice': 363,
+            'premium': 1.8
+        },
+        941: {
+            'strikePrice': 181,
+            'premium': 1.13
+        },
+
+    },
+    'DIA': {
+        83: {
+            'strikePrice': 296,
+            'premium': 1.77
+        }
+    },
+    'QQQ': {
+        9: {
+            'strikePrice': 300,
+            'premium': 2.15
+        }  
+    }
+}
+
+
 class ETFCalculator:
     def __init__(self, cash, etfs=('SPY', 'DIA', 'QQQ', 'IWM')):
         """
         Initialize with etfs to trade and avaliable cash
         """
-        self.etfs = sp.StockExtractor().extractPutData(etfs)
+        self.etfs = ETFS #sp.StockExtractor().extractPutData(etfs)
         print("ETF Data extracted. Finding your assignments...\n")
         self.cash = cash
 
+        
         # finds lowest possible strike price out of all contracts
         self.cheapestStock = float('inf')
+        self.numContracts = 0
         for etf in self.etfs:
             for expiration in self.etfs[etf]:
                 self.cheapestStock = min(self.cheapestStock, self.etfs[etf][expiration]['strikePrice'])
-    
-    def __calcRemainingCash(self, assignment):
-        """
-        Calculates cash remaining after a particular assignment is taken 
-        """
-        balance = self.cash
-        for etf, expiration in assignment:
-            balance -= (self.etfs[etf][expiration]['strikePrice'] * SHARES_PER_CONTRACT)
-        return balance
+                self.numContracts += 1
 
+    def __calcOptimalAssignment(self, dp, contracts):
+        """
+        Given all possible contracts and filled DP table from value assignment,
+        determines optimal assignment of contracts that created that value.
+        """
+        bag = []
+        contractIdx = self.numContracts
+        cashRemaining = self.cash // SHARES_PER_CONTRACT
+        while contractIdx > 0 and cashRemaining > 0:
+            curr = dp[contractIdx][cashRemaining]
+            if curr != dp[contractIdx - 1][cashRemaining]:
+                # current contract is included - add to bag and update remainingCash
+                bag.append((contracts[contractIdx - 1]['stock'], contracts[contractIdx - 1]['expiration']))
+                cashRemaining -= contracts[contractIdx - 1]['strikePrice']
+            else:
+                # current contract is excluded
+                contractIdx -= 1
+        
+        return bag, cashRemaining * SHARES_PER_CONTRACT
+
+    def assignStocksDP(self):
+        """
+        Implements modified 0/1 knapsack search algorithm for calculating maximum possible
+        premium given all valid contracts. Builds dynamic programming table that is used to 
+        determine optimal assignment in polynomial time (O(cash * numContracts))
+        """
+        capacity = self.cash // SHARES_PER_CONTRACT
+        dp = [ [0 for _ in range(capacity + 1)] for _ in range(self.numContracts + 1)]
+        
+        contracts = []
+        for cashLimit in range(capacity + 1):
+            contractIdx = 1
+            for stock in self.etfs:
+                for expiration in self.etfs[stock]:
+                    weight = self.etfs[stock][expiration]['strikePrice']
+                    premium = self.etfs[stock][expiration]['premium']
+
+                    # build up array of all contracts for calculating optimal assignments
+                    if cashLimit == 0:
+                        contracts.append({'stock': stock, 'expiration': expiration, 'strikePrice': weight})
+
+                    dp[contractIdx][cashLimit] = dp[contractIdx - 1][cashLimit]
+                    if weight <= cashLimit:
+                        # either include or exclude the current contract, take one with max value
+                        dp[contractIdx][cashLimit] = max(dp[contractIdx][cashLimit], dp[contractIdx][cashLimit - weight] + premium)
+                    contractIdx += 1
+
+        asssignmentValue = dp[-1][-1] * SHARES_PER_CONTRACT
+        assignments, cashRemaining = self.__calcOptimalAssignment(dp, contracts)
+        return asssignmentValue, assignments, cashRemaining
+                    
     def __assignStocksRec(self, value, moneyLeft, assignment, cache):
         """
         Modified backtracking algorithm wrapper that finds the optimal assignment of stocks
@@ -93,10 +166,13 @@ class ETFCalculator:
 
 
 def tests():
-    calc = ETFCalculator(cash=120000)
+    calc = ETFCalculator(cash=CASH)
 
-    assignments = calc.assignStocks()
+    print(calc.assignStocksDP())
+    print(calc.assignStocks()['Value ($x100)'])
+
     print()
+    assignments = calc.assignStocks()
     for key in assignments:
         print(key+":", assignments[key])
 
