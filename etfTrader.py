@@ -6,7 +6,7 @@ portfolio distribution (in polynomial time) for trading ETF option contracts
 using modified straddle-based strategy
 """
 
-import collections
+import collections, sys
 import scrapePrices as sp
 
 SHARES_PER_CONTRACT = 100
@@ -39,7 +39,7 @@ class ETFCalculator:
         """
         bag = []
         contractIdx = self.numContracts
-        cashRemaining = self.cash // SHARES_PER_CONTRACT
+        cashRemaining = int(self.cash // SHARES_PER_CONTRACT)
         while contractIdx > 0 and cashRemaining > 0:
             curr = dp[contractIdx][cashRemaining]
             if curr != dp[contractIdx - 1][cashRemaining]:
@@ -76,7 +76,7 @@ class ETFCalculator:
         if self.cash < self.cheapestStock:
             return self.__formatOutput([], 0, self.cash)
 
-        capacity = self.cash // SHARES_PER_CONTRACT
+        capacity = int(self.cash // SHARES_PER_CONTRACT)
         dp = [ [0 for _ in range(capacity + 1)] for _ in range(self.numContracts + 1)]
         
         contracts = []
@@ -101,15 +101,30 @@ class ETFCalculator:
         return self.__formatOutput(assignment, dp[-1][-1], cashRemaining)
 
 
-def tests():
-    cash = 401088
-    etfs = ('SPY', 'DIA', 'QQQ', 'IWM')
-    calc = ETFCalculator(cash, etfs)
-    print()
-    assignments = calc.assignStocks()
-    for key in assignments:
-        print(key+":", assignments[key])
+def main():
+    """
+    Main function that reads input from command line and process output
 
+    python3 etfTrader.py [tickers,] cash
+    
+    - tickers: space separated list of all stock tickers
+    - avaliable cash in account
+   
+    ex: python3 etfTrade.py SPY QQQ DIA IWM 94500
+    """
+    try:
+        args = sys.argv[1:]
+        tickers = args[1:-1]
+        cash = float(args[-1])
+        calc = ETFCalculator(cash, tickers)
+        print()
+        assignments = calc.assignStocks()
+        for key in assignments:
+            print(key+":", assignments[key])
+    except:
+        print("Error in input. Please see documentation for CLI usage")
+        sys.exit()
 
+    
 if __name__ == '__main__':
-    tests()
+    main()

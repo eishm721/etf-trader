@@ -82,14 +82,3 @@ class YahooFinanceScraper:
         Returns bid price of a CALL option for specific stock and specific expiration date
         """
         return self.__getOptionsPrice(stock, expiration, strike, 'calls')
-
-
-def testScraper():
-    print()
-    s = YahooFinanceScraper()
-    dec11th = 1607644800
-    print(s.getPutPrice('SPY', dec11th, 369))
-
-
-if __name__ == '__main__':
-    testScraper()

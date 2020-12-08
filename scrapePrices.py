@@ -5,7 +5,7 @@ Implements class for finding all possible options data for
 specified ETFs. To be used for running backtracking algorithm.
 """
 
-import time, datetime, yahooFinanceScraper
+import time, datetime, yahooFinanceScraper, sys
 
 DAYS_IN_WEEK = 7
 SECONDS_IN_WEEK = 604800
@@ -66,13 +66,17 @@ class StockExtractor:
         return etfs
 
 
-def testStockExtractor():
+def main():
+    """ 
+    Main function that extracts avaliable options contracts for
+    provided stocks in CLI (within next week)
+    """
     print()
     s = StockExtractor()
-    print(s.extractPutData(('SPY', 'DIA', 'QQQ', 'IWM')))
+    print(s.extractPutData(sys.argv[1:]))
 
 
 if __name__ == '__main__':
-    testStockExtractor()
+    main()
     
 
