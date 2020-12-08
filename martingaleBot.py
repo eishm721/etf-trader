@@ -9,6 +9,7 @@ Insert key and secret auth from API docs into lines 12-13
 """
 
 import alpaca_trade_api as tradeapi
+import sys
 
 KEY = ''
 SECRET = ''
