@@ -12,6 +12,7 @@ Framework is developed in Python. Initial steps were designing a custom Yahoo Fi
 - Knapsack algorithm for determining optimal portfolio allocation
   - considers contract strike price, premium, expiration, IV, delta, theta decay
 - Simple UI (built w/ python client for Anvil) for visualizing allocation algorithm: https://etf-auto.anvil.app
+- Interface for placing paper trades using Alpaca API
 
 ### Usage
 
