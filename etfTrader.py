@@ -92,7 +92,6 @@ class ETFCalculator:
         return self.__formatOutput(assignment, assignmentValue, self.__calcRemainingCash(assignment))
 
 
-
 def tests():
     calc = ETFCalculator(cash=120000)
 
