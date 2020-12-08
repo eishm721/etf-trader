@@ -1,10 +1,17 @@
-# Use alpaca API
-# Martingale strategy for S&P 500 ETFs (IVV, SPY)
-# follow one direction until we get profit
+"""
+FILENAME: martingaleBot
+
+Interface for using Alpaca API for placing paper trades.
+Uses martingale trading strategy for demonstration on S&P 500 ETFs.
+Design other trading strategies as needed.
+
+Insert key and secret auth from API docs into lines 12-13
+"""
+
 import alpaca_trade_api as tradeapi
 
-KEY = "PK57HCE2U6BW50JXOB2D"
-SECRET = "Non7NRI0tvy1hhGDz0bnYsCXWUreba4Gtd3AWqwQ"
+KEY = ''
+SECRET = ''
 
 class TradingBot:
     def __init__(self, etf='SPY'):
@@ -33,9 +40,11 @@ class Martingale(TradingBot):
     Cons: Increasing the investment size without stop loss limits.
     """
     def submit_order(self, targetShares):
+        # keep only one open order at once
         if self.current_order is not None:
             self.api.cancel_order(self.current_order.id)
-
+        
+        # determine whether to buy (d > 0) or sell (d < 0)
         delta = targetShares - self.position
         if delta == 0:
             return
