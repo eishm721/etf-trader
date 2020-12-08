@@ -1,41 +1,38 @@
-# Tweet.Ly 
+# ETFTrader
 
-This is a text prediction application that uses 3 machine learning algorithms and scraped Twitter history to predict, w/ 96% accuracy, future user speech patterns.
+This is a python bot to trade SPY/DIA/QQQ/IWM ETF contracts using straddle-based options strategy. I have developed a knapsack-based search algorithm to optimize portfolio distribution & automate trades w/ HTTP requests. Additionally, I have built a custom web-scraper to fetch live stock prices/indicators by parsing HTML code and interfacing with Yahoo Finance public API. So far, we have seen an annualized 14% return, nearly double the performance of the S&P 500 on historical data. Minimum investment must be ~$20,000 for trading ETF options.
 
-This command-line application has two modes, analyze and compare. Analyze reports a users tweeting patterns and other fun statistics. Compare takes in a sample of text and a list of 2 or more users and predicts which user is most likely to say that tweet based on one of 3 machine learning algorithms, along with a similarity index. All input handled through command line. Requires Twitter developer account with access keys.
+Framework is developed in Python. Initial steps were designing a custom Yahoo Finance web-scraper due to limitations in free, real-time stock data (lxml, HTTP). Next, I developed a knapsack-based search algorithm for determining optimal porfolio allocation based on option contract details (strike price, premium, expiration) and various indicators (implied volatility, delta, theta). I built a simple UI for visualizing this algorithm using Anvil python client (both server/client side). Lastly, we interfaced the Alpaca API for placing paper trades.
 
-Framework is developed in Python using Tweepy API and twitter developer account. Initial steps were designing a scraping algorithm to process user tweets via Tweepy. Next steps were designing a machine-learning classification algorithm (NumPy/SciPy) using a Bayesian model and a multinomial random variable distribution to use a "Bag of Words" model. Simulations were run w/ 100,000 user tweets to test the accuracy of the model in many different categories. Next, two modern ML algorithms were developed, Naive Bayes and Logistic Regression. Accuracy was also tested for these models.
 
 ### Features:
-- 3 ML prediction algorithms: Multinomial RV model, Naive Bayes, Logistic Regression
-- 2 modes of analyzing scraped data
-  - Analyze: Tweeting statistics and patterns for set of users
-  - Compare: apply text predictionl algorithm to predict future speech patterns for users
-- Reads up-to-date tweet data on each call for an automatically updating dataset
-- Set number of tweets to base models from
+- Custom web-scraper to extract real-time stock data
+  - current stock price
+  - option premiums/expirations
+- Knapsack algorithm for determining optimal portfolio allocation
+  - considers contract strike price, premium, expiration, IV, delta, theta decay
+- Simple UI (built w/ python client for Anvil) for visualizing allocation algorithm: https://etf-auto.anvil.app
 
 ### Usage
-    python3 analzetweets.py -command [users...]
 
-    arguments:
-      command         the method of analysis, 'compare' or 'analyze'
-      users           space delimited list of twitter handles (without @) (for compare mode)
+    python3 etfTrader.py [tickers,] cash
+    
+    - tickers: space separated list of all stock tickers
+    - avaliable cash in account
+   
+    ex: python3 etfTrade.py SPY QQQ DIA IWM 94500
+    
       
 ### Libraries Used:
-- Tweepy - handle twitter API and scraping
+- lxml - HTML web-scraper for real-time stock prices
+- requests - HTTP requests on APIs
+- Yahoo Finance API - scraping options data
+- Alpaca API - placing paper trades
+- Anvil - building simple UI for portfolio
+- time/datetime - custom timer for determing option contract expiration dates
 - NumPy/SciPy - mathematical analysis with large data sets, building classification models
 
-### Set-Up:
-- Requires twitter developer account w/ consumer key & access token (https://developer.twitter.com/en)
-  - Replace lines 6-9 in authentication.py with developer account information
-  - Adjust lines 23 in analyzetweets.py to specify the ML classifier to use
-- Run analyzetweets.py in command line with specified parameters
     
-### Most Recent Changes (06/12/20):
-- Implemented 2 machine learning algorithms (Naive Bayes / Logistic regression)
-- ML algorithm tester to test accuracy of new approaches
-- New authentication file for simplifying twitter authentication
-- More descriptive error messages
-- Dramatic efficiency improvements - reduced tweet parsing from O(n^2) to O(n)
-    - Improved efficiency of building dictionary by 2-fold
+### Most Recent Changes (12/08/20):
+- Improved portfolio allocation algorithm runtime from O(2^n) to O(n^2) using dynamic program
 
