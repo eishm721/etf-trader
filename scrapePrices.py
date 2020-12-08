@@ -6,26 +6,20 @@ specified ETFs. To be used for running backtracking algorithm
 """
 #upload 2 things to github, yahoo finance scraper + app
 
-import datetime
+import time, datetime
 from datetime import timezone
 import yahooFinanceScraper
 
 DAYS_IN_WEEK = 7
 FRIDAY_INDEX = 4
 STRIKE_RATIO = 0.985
-
-def getNextFriday():
-    """
-    Helper function to get next friday in the current week.
-    Used to pick option expiration dates
-    """
-    today = datetime.date.today()
-    return today + datetime.timedelta((FRIDAY_INDEX-today.weekday()) % DAYS_IN_WEEK)
+SECONDS_IN_WEEK = 604800
 
 
 class StockExtractor:
-    def __init__(self):
+    def __init__(self, numWeeks=1):
         self.scraper = yahooFinanceScraper.YahooFinanceScraper()
+        self.numWeeks = numWeeks
    
     def __getStrikePrice(self, stock):
         """
@@ -35,31 +29,43 @@ class StockExtractor:
         currPrice = self.scraper.getCurrPrice(stock)
         return round(currPrice * STRIKE_RATIO)
 
+    def __inRangeExpirations(self, stock):
+        possibleDates = self.scraper.getExpirationDates(stock)
+        lastDate = time.time() + (SECONDS_IN_WEEK * self.numWeeks)
+        return [date for date in possibleDates if date < int(lastDate) ]
+
     def extractPutData(self, stocks):
         """
         Takes an array of stocks and calculates strike price and premium for  
         a given expiration date
         """
         etfs = {}
-        expirationDate = getNextFriday()
+        # expirationDate = getNextFriday()
         for stock in stocks:
-            strikePrice = self.__getStrikePrice(stock)
-            premium = self.scraper.getPutPrice(stock, expirationDate, strikePrice)
-            etfs[stock] = {
-                'strikePrice': strikePrice, 
-                'premium': premium,
-                'expiration': expirationDate.strftime("%m/%d/%Y")
-            }
+            for expiration in self.__inRangeExpirations(stock):
+                strikePrice = self.__getStrikePrice(stock)
+                premium = self.scraper.getPutPrice(stock, expiration, strikePrice)
+
+                # convert expiration date to readable form
+                value = datetime.datetime.utcfromtimestamp(expiration)
+                utc_time = f"{value:%m-%d-%Y}"
+
+                if stock not in etfs:
+                    etfs[stock] = {}
+                etfs[stock][utc_time] = {
+                    'strikePrice': strikePrice, 
+                    'premium': premium,
+                }
+
         return etfs
 
 def testStockExtractor():
+    print()
     s = StockExtractor()
     print(s.extractPutData(('SPY', 'DIA', 'QQQ', 'IWM')))
 
 
 if __name__ == '__main__':
     testStockExtractor()
-    
-
     
 

@@ -11,22 +11,29 @@ import scrapePrices as sp
 
 SHARES_PER_CONTRACT = 100
 
+
 class ETFCalculator:
     def __init__(self, cash, etfs=('SPY', 'DIA', 'QQQ', 'IWM')):
         """
         Initialize with etfs to trade and avaliable cash
         """
         self.etfs = sp.StockExtractor().extractPutData(etfs)
+        print("ETF Data extracted. Finding your assignments...\n")
         self.cash = cash
-        self.cheapestStock = min([self.etfs[etf]['strikePrice'] for etf in self.etfs])
 
+        # finds lowest possible strike price out of all contracts
+        self.cheapestStock = float('inf')
+        for etf in self.etfs:
+            for expiration in self.etfs[etf]:
+                self.cheapestStock = min(self.cheapestStock, self.etfs[etf][expiration]['strikePrice'])
+    
     def __calcRemainingCash(self, assignment):
         """
         Calculates cash remaining after a particular assignment is taken 
         """
         balance = self.cash
-        for etf in assignment:
-            balance -= (self.etfs[etf]['strikePrice'] * SHARES_PER_CONTRACT)
+        for etf, expiration in assignment:
+            balance -= (self.etfs[etf][expiration]['strikePrice'] * SHARES_PER_CONTRACT)
         return balance
 
     def __assignStocksRec(self, value, moneyLeft, assignment, cache):
@@ -49,16 +56,18 @@ class ETFCalculator:
         
         # try assigning each ETF to current assignment and recursively pick ETF w/ highest value
         for etf in self.etfs:
-            tempVal = value + self.etfs[etf]['premium']
-            tempMoney = moneyLeft - self.etfs[etf]['strikePrice']
-            currVal, currAssignment = self.__assignStocksRec(tempVal, tempMoney, assignment + [etf], cache)
+            for expiration in self.etfs[etf]:
+                tempVal = value + self.etfs[etf][expiration]['premium']
+                tempMoney = moneyLeft - self.etfs[etf][expiration]['strikePrice']
+                currVal, currAssignment = self.__assignStocksRec(tempVal, tempMoney, assignment + [(etf, expiration)], cache)
 
-            if currVal > maxValue:
-                maxValue = currVal
-                bestAssignment = currAssignment
+                if currVal > maxValue:
+                    maxValue = currVal
+                    bestAssignment = currAssignment
 
         cache[(value, moneyLeft)] = maxValue
         return maxValue, bestAssignment
+
 
     def __formatOutput(self, assignment, value, cashRemaining):
         """
@@ -83,8 +92,10 @@ class ETFCalculator:
         return self.__formatOutput(assignment, assignmentValue, self.__calcRemainingCash(assignment))
 
 
+
 def tests():
-    calc = ETFCalculator(cash=82000)
+    calc = ETFCalculator(cash=120000)
+
     assignments = calc.assignStocks()
     print()
     for key in assignments:

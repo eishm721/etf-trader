@@ -1,11 +1,12 @@
 """
+FILENAME: yahooFinanceScraper
+
 Class for scraping stock and options data from Yahoo Finance API
 Uses lxml to parse HTML for stock prices and scrapes YF API for options data
 """
 
 from lxml import html
-import requests
-import datetime
+import requests, datetime
 
 class YahooFinanceScraper:
     def __init__(self):
@@ -14,7 +15,8 @@ class YahooFinanceScraper:
         """
         self.price = 'https://finance.yahoo.com/quote/{}?p={}&.tsrc=fin-srch'
         self.options = 'https://query2.finance.yahoo.com/v7/finance/options/{}?date={}'
-
+        self.allOptions = 'https://query2.finance.yahoo.com/v7/finance/options/{}'
+    
     def getCurrPrice(self, stock):
         """
         Extract real-time market price for given stock ticker.
@@ -24,6 +26,13 @@ class YahooFinanceScraper:
         tree = html.fromstring(page.content)
         return float(tree.xpath('//span[@class="Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"]/text()')[0])
 
+    def getExpirationDates(self, stock):
+        """
+        Extract expiration dates for all avaliable options for a given stock
+        """
+        data = requests.get('https://query2.finance.yahoo.com/v7/finance/options/{}'.format(stock)).json()
+        return data['optionChain']['result'][0]['expirationDates']
+    
     def __getExpirationUTC(self, expDate):
         """
         Convert date in string format YYYY-MM-DD to unix time (UTC)
@@ -57,7 +66,7 @@ class YahooFinanceScraper:
         a specific expirationDate (datetime.datetime object), of a specific
         type (call or put).
         """
-        expiration = self.__getExpirationUTC(expirationString)
+        expiration = expirationString # self.__getExpirationUTC(expirationString)
         request = requests.get(self.options.format(stock, expiration)).json()
         data = request['optionChain']['result']
         if not data:
@@ -87,8 +96,11 @@ class YahooFinanceScraper:
 
 
 def testScraper():
+    print()
     s = YahooFinanceScraper()
-    print(s.getPutPrice('SPY', datetime.datetime(), 369))
+
+    dec11th = 1607644800
+    print(s.getPutPrice('SPY', dec11th, 369))
 
 
 if __name__ == '__main__':
