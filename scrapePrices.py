@@ -1,25 +1,23 @@
 """
 FILENAME: scrapePrices
 
-Implements class for finding options data for 
-specified ETFs. To be used for running backtracking algorithm
+Implements class for finding all possible options data for 
+specified ETFs. To be used for running backtracking algorithm.
 """
-#upload 2 things to github, yahoo finance scraper + app
 
-import time, datetime
+import time, datetime, yahooFinanceScraper
 from datetime import timezone
-import yahooFinanceScraper
 
 DAYS_IN_WEEK = 7
+SECONDS_IN_WEEK = 604800
 FRIDAY_INDEX = 4
 STRIKE_RATIO = 0.985
-SECONDS_IN_WEEK = 604800
 
 
 class StockExtractor:
     def __init__(self, numWeeks=1):
         self.scraper = yahooFinanceScraper.YahooFinanceScraper()
-        self.numWeeks = numWeeks
+        self.numWeeks = numWeeks  # number of weeks in the future to consider expirations
    
     def __getStrikePrice(self, stock):
         """
@@ -30,34 +28,44 @@ class StockExtractor:
         return round(currPrice * STRIKE_RATIO)
 
     def __inRangeExpirations(self, stock):
+        """
+        Calculates all possible expiration dates for a option for
+        a specific ticket within self.numWeeks from today 
+        """
         possibleDates = self.scraper.getExpirationDates(stock)
-        lastDate = time.time() + (SECONDS_IN_WEEK * self.numWeeks)
-        return [date for date in possibleDates if date < int(lastDate) ]
+        lastPossibleDate = time.time() + (SECONDS_IN_WEEK * self.numWeeks)
+        return [date for date in possibleDates if date < lastPossibleDate ]
 
     def extractPutData(self, stocks):
         """
-        Takes an array of stocks and calculates strike price and premium for  
-        a given expiration date
+        Takes an array of stocks and calculates strike price and premium for all 
+        valid expiration dates.
+        Example output format:
+        {
+            'SPY': {
+                1607644800: {
+                    strikePrice: 369.02,
+                    premium: 1.92
+                }
+            }
+        }
         """
         etfs = {}
-        # expirationDate = getNextFriday()
         for stock in stocks:
-            for expiration in self.__inRangeExpirations(stock):
-                strikePrice = self.__getStrikePrice(stock)
+            validExpirations = self.__inRangeExpirations(stock)
+            strikePrice = self.__getStrikePrice(stock)
+            for expiration in validExpirations:
                 premium = self.scraper.getPutPrice(stock, expiration, strikePrice)
 
                 # convert expiration date to readable form
-                value = datetime.datetime.utcfromtimestamp(expiration)
-                utc_time = f"{value:%m-%d-%Y}"
+                expDt = datetime.datetime.utcfromtimestamp(expiration)
+                utc_expiration = f"{expDt:%m-%d-%Y}"
 
                 if stock not in etfs:
                     etfs[stock] = {}
-                etfs[stock][utc_time] = {
-                    'strikePrice': strikePrice, 
-                    'premium': premium,
-                }
-
+                etfs[stock][utc_expiration] = { 'strikePrice': strikePrice, 'premium': premium }
         return etfs
+
 
 def testStockExtractor():
     print()

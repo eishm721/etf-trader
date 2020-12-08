@@ -48,13 +48,13 @@ class ETFCalculator:
             # can't assign more stocks, return current value/premium
             return value, assignment
         if (value, moneyLeft) in cache:
-            # precomputed calue
+            # precomputed value
             return cache[(value, moneyLeft)], assignment
 
         maxValue = 0
         bestAssignment = None
         
-        # try assigning each ETF to current assignment and recursively pick ETF w/ highest value
+        # try assigning 1 more of each ETF to current assignment and recursively pick ETF w/ highest value
         for etf in self.etfs:
             for expiration in self.etfs[etf]:
                 tempVal = value + self.etfs[etf][expiration]['premium']

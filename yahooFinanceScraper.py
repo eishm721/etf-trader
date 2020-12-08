@@ -4,9 +4,9 @@ FILENAME: yahooFinanceScraper
 Class for scraping stock and options data from Yahoo Finance API
 Uses lxml to parse HTML for stock prices and scrapes YF API for options data
 """
-
 from lxml import html
 import requests, datetime
+
 
 class YahooFinanceScraper:
     def __init__(self):
@@ -32,15 +32,6 @@ class YahooFinanceScraper:
         """
         data = requests.get('https://query2.finance.yahoo.com/v7/finance/options/{}'.format(stock)).json()
         return data['optionChain']['result'][0]['expirationDates']
-    
-    def __getExpirationUTC(self, expDate):
-        """
-        Convert date in string format YYYY-MM-DD to unix time (UTC)
-        ex: '2020-12-11' --> 1607644800
-        """
-        dt = datetime.datetime(expDate.year, expDate.month, expDate.day)
-        utc_time = dt.replace(tzinfo=datetime.timezone.utc)
-        return int(utc_time.timestamp())
 
     def __findStrikeIndex(self, contracts, strikePrice):
         """
@@ -60,39 +51,38 @@ class YahooFinanceScraper:
                 end = mid - 1
         return -1
 
-    def getContracts(self, stock, expirationString, optionType):
+    def getContracts(self, stock, expiration, optionType):
         """
         Returns an array of all contracts of a specified ticker with 
         a specific expirationDate (datetime.datetime object), of a specific
         type (call or put).
         """
-        expiration = expirationString # self.__getExpirationUTC(expirationString)
         request = requests.get(self.options.format(stock, expiration)).json()
         data = request['optionChain']['result']
         if not data:
             raise ValueError("Invalid ticker")
         return data[0]['options'][0][optionType]  
 
-    def __getOptionsPrice(self, stock, expirationString, strike, optionType):
+    def __getOptionsPrice(self, stock, expiration, strike, optionType):
         """
         Takes a stock ticker, expiration date, strikePrice, type of option.
         Returns bid price
         """
-        contracts = self.getContracts(stock, expirationString, optionType)
+        contracts = self.getContracts(stock, expiration, optionType)
         contract = contracts[self.__findStrikeIndex(contracts, strike)]
         return contract['bid']
 
-    def getPutPrice(self, stock, expirationString, strike):
+    def getPutPrice(self, stock, expiration, strike):
         """
         Returns bid price of a PUT option for specific stock and specific expiration date
         """
-        return self.__getOptionsPrice(stock, expirationString, strike, 'puts')
+        return self.__getOptionsPrice(stock, expiration, strike, 'puts')
 
-    def getCallPrice(self, stock, expirationString, strike):
+    def getCallPrice(self, stock, expiration, strike):
         """
         Returns bid price of a CALL option for specific stock and specific expiration date
         """
-        return self.__getOptionsPrice(stock, expirationString, strike, 'calls')
+        return self.__getOptionsPrice(stock, expiration, strike, 'calls')
 
 
 def testScraper():
