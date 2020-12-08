@@ -14,18 +14,19 @@ DAYS_IN_WEEK = 7
 FRIDAY_INDEX = 4
 STRIKE_RATIO = 0.985
 
+def getNextFriday():
+    """
+    Helper function to get next friday in the current week.
+    Used to pick option expiration dates
+    """
+    today = datetime.date.today()
+    return today + datetime.timedelta((FRIDAY_INDEX-today.weekday()) % DAYS_IN_WEEK)
+
+
 class StockExtractor:
     def __init__(self):
         self.scraper = yahooFinanceScraper.YahooFinanceScraper()
    
-    def __getNextFriday(self):
-        """
-        Helper function to get next friday in the current week.
-        Used to pick option expiration dates
-        """
-        today = datetime.date.today()
-        return today + datetime.timedelta((FRIDAY_INDEX-today.weekday()) % DAYS_IN_WEEK)
-
     def __getStrikePrice(self, stock):
         """
         Calculates strike price based on current stock price.
@@ -40,7 +41,7 @@ class StockExtractor:
         a given expiration date
         """
         etfs = {}
-        expirationDate = self.__getNextFriday()
+        expirationDate = getNextFriday()
         for stock in stocks:
             strikePrice = self.__getStrikePrice(stock)
             premium = self.scraper.getPutPrice(stock, expirationDate, strikePrice)
@@ -56,6 +57,7 @@ def testStockExtractor():
     print(s.extractPutData(('SPY', 'DIA', 'QQQ', 'IWM')))
 
 
-
+if __name__ == '__main__':
+    testStockExtractor()
     
 

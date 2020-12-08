@@ -89,3 +89,7 @@ class YahooFinanceScraper:
 def testScraper():
     s = YahooFinanceScraper()
     print(s.getPutPrice('SPY', datetime.datetime(), 369))
+
+
+if __name__ == '__main__':
+    testScraper()

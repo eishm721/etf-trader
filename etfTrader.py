@@ -85,4 +85,10 @@ class ETFCalculator:
 
 def tests():
     calc = ETFCalculator(cash=82000)
-    print(calc.assignStocks())
+    assignments = calc.assignStocks()
+    print()
+    for key in assignments:
+        print(key+":", assignments[key])
+
+if __name__ == '__main__':
+    tests()
