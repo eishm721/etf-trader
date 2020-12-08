@@ -6,7 +6,6 @@ specified ETFs. To be used for running backtracking algorithm.
 """
 
 import time, datetime, yahooFinanceScraper
-from datetime import timezone
 
 DAYS_IN_WEEK = 7
 SECONDS_IN_WEEK = 604800

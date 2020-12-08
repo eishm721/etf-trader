@@ -13,11 +13,11 @@ SHARES_PER_CONTRACT = 100
 
 
 class ETFCalculator:
-    def __init__(self, cash, etfs=('SPY', 'DIA', 'QQQ', 'IWM')):
+    def __init__(self, cash, etfs, weeks=1):
         """
         Initialize with etfs to trade and avaliable cash
         """
-        self.etfs = sp.StockExtractor().extractPutData(etfs)
+        self.etfs = sp.StockExtractor(weeks).extractPutData(etfs)
         print("ETF Data extracted. Finding your assignments...\n")
         self.cash = cash
 
@@ -63,7 +63,7 @@ class ETFCalculator:
             'Cash Remaining ($)': cashRemaining
         }
 
-    def assignStocksDP(self):
+    def assignStocks(self):
         """
         Calculates optimal portfolio distribution given current cash and 
         current options trading prices.
@@ -102,9 +102,11 @@ class ETFCalculator:
 
 
 def tests():
-    calc = ETFCalculator(cash=76000)
+    cash = 24101
+    etfs = ('SPY', 'DIA', 'QQQ', 'IWM')
+    calc = ETFCalculator(cash, etfs)
     print()
-    assignments = calc.assignStocksDP()
+    assignments = calc.assignStocks()
     for key in assignments:
         print(key+":", assignments[key])
 
